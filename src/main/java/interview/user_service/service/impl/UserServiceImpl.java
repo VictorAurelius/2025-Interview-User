@@ -9,6 +9,7 @@ import interview.user_service.entity.User;
 import interview.user_service.exception.CustomException;
 import interview.user_service.mapper.UserMapper;
 import interview.user_service.repository.UserRepository;
+import interview.user_service.service.EmailService;
 import interview.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,19 +24,38 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
+        // Check if username already exists
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new CustomException("Username already exists", HttpStatus.CONFLICT);
         }
 
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException("Email already exists", HttpStatus.CONFLICT);
+        }
+
+        // Create new user
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ROLE_USER); // Default role
+        user.setRole(Role.ROLE_USER);
+        user.setEmail(request.getEmail());
 
+        // Save user
         User savedUser = userRepository.save(user);
+
+        // Send registration email
+        try {
+            emailService.sendRegistrationEmail(savedUser);
+        } catch (Exception e) {
+            // Log the error but don't stop the registration process
+            System.err.println("Failed to send registration email: " + e.getMessage());
+        }
+
         return userMapper.toResponse(savedUser);
     }
 

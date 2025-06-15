@@ -11,9 +11,13 @@ import org.mapstruct.ReportingPolicy;
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "role", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "email", source = "email")
     User toEntity(UserRegistrationRequest request);
 
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "role", source = "role")
     UserResponse toResponse(User user);
 }

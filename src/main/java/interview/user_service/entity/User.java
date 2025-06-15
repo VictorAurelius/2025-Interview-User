@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,11 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
+    @Column(unique = true, nullable = false)
+    private String email;
+
     @NotBlank(message = "Password is required")
     @Column(nullable = false)
     private String password;
@@ -40,7 +46,7 @@ public class User {
     protected void onCreate() {
         createdAt = java.time.LocalDateTime.now();
         if (role == null) {
-            role = Role.ROLE_USER; // Default role
+            role = Role.ROLE_USER;
         }
     }
 }
